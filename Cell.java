@@ -21,4 +21,12 @@ public class Cell {
     public void incrementMineCount() {
         mineCount++;
     }
+
+    public void flagCell(){
+        isFlagged = true;
+    }
+
+    public void openCell(){
+        isShown = true;
+    }
 }
