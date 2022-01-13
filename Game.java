@@ -53,13 +53,13 @@ public class Game {
                 if (!board[row][column].isShown && !board[row][column].isFlagged){
                     System.out.print("█ ");
                 }
-                else if (board[row][column].isMine){
-                    System.out.print("X ");
-                }
                 else if (board[row][column].isFlagged){
                     System.out.print("F ");
                 }
-                else if (board[row][column].isFlagged || board[row][column].isShown || !board[row][column].isShown){
+                else if (board[row][column].isMine){
+                    System.out.print("X ");
+                }
+                else{
                     System.out.print(board[row][column].mineCount + " ");
                 }
             }
@@ -116,10 +116,8 @@ public class Game {
         int X = parsedInput[1];
         int Y = parsedInput[2];
 
-        if (parsedInput[0] == 0) {
-            return boardUpdate;
-        }
-        else if (parsedInput[0] == 1) {
+
+        if (parsedInput[0] == 1) {
 
             boardUpdate[X][Y].openCell();
 
@@ -130,8 +128,6 @@ public class Game {
                             try {
                                 if (!boardUpdate[X + dx][Y + dy].isShown) {
                                     boardUpdate = updateBoard(new int[]{1, X + dx, Y + dy}, boardUpdate);
-                                    //board[X + dx][Y + dy].incrementMineCount();
-
                                 }
                             }catch (Exception e) {}
                         }
@@ -145,6 +141,31 @@ public class Game {
 
         return boardUpdate;
     }
+
+    /*public static int checkWin(Cell[][] board){
+
+        Cell[][] checkBoard = board;
+        int[] winCondition = {0};
+
+        for (int dx = -1; dx <= 1; dx++){
+            for (int dy = -1; dy <= 1; dy++){
+                if (!(dx == 0 && dy == 0)){
+                    try {
+                        if (checkBoard[dx][dy].openCell() && checkBoard[dx][dy].isMine)){
+                            winCondition[0] = 0;
+                        }
+                    }
+                    catch(Exception e){}
+                }
+            }
+        }
+
+        if (){
+
+        }
+
+
+    }*/
 
     //runs the game
     public static void main(String[] args) {
@@ -163,25 +184,28 @@ public class Game {
         System.out.println("3. Hard");
 
         //menu select
-        while (menu){
+       while (menu){
             switch (scan.next()) {
                 case "1":
                     System.out.println("Easy" + "\n");
                     board = createBoard(9);
                     randomizeMines(board, 10);
                     renderBoard(board);
+                    menu = false;
                     break;
                 case "2":
                     System.out.print("Medium" + "\n");
                     board = createBoard(16);
                     randomizeMines(board, 40);
                     renderBoard(board);
+                    menu = false;
                     break;
                 case "3":
                     System.out.print("Hard" + "\n");
                     board = createBoard(24);
                     randomizeMines(board, 99);
                     renderBoard(board);
+                    menu = false;
                     break;
                 case "sticky":
                     System.out.print("sticky" + "\n");
@@ -193,11 +217,12 @@ public class Game {
                     System.out.print("Invalid number, please select a difficulty:");
                     break;
             }
-        }
+       }
 
         System.out.println();
         System.out.println("To select a tile, type in your action then your X and Y, letter indicated, coordinates" + "\n");
         System.out.println("Your actions include:" + "\n" + "Opening a tile (o)" + "\n" + "Flagging a tile (f)" + "\n" + "Quiting (quit or q)");
+        System.out.println("\n" + "To unflag a tile, please flag that same tile again" + "\n");
 
         boolean run = true;
 
@@ -207,13 +232,18 @@ public class Game {
 
             String input = scan.next();
             int[] parsedInput = playerInput(input);
-            Cell[][] boardUpdate = updateBoard(parsedInput, board);
 
-//            if (boardUpdate == board){
-//                run = false;
-//                System.out.println(" Thank you for playing");
-//            }
-                board = boardUpdate;
+            if (parsedInput[0] == 0) {
+                System.out.println(" Thank you for playing");
+                run = false;
+            }
+
+            Cell[][] boardUpdate = updateBoard(parsedInput, board);
+            board = boardUpdate;
+
+            //checkWin(board);
+
+
 
         }
     }

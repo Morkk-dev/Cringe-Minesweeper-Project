@@ -14,8 +14,9 @@ public class Cell {
         mineCount = 0;
     }
 
-    public void setMine() {
+    public boolean setMine() {
         isMine = true;
+        return false;
     }
 
     public void incrementMineCount() {
@@ -23,10 +24,11 @@ public class Cell {
     }
 
     public void flagCell(){
-        isFlagged = true;
+        isFlagged = !isFlagged;
     }
 
-    public void openCell(){
+    public boolean openCell(){
         isShown = true;
+        return false;
     }
 }
