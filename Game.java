@@ -50,13 +50,16 @@ public class Game {
         for (int row = 0; row < board.length; row++){
             System.out.print((char)(row + 65) + " ");
             for (int column = 0; column < board.length; column++){
-                if (!board[row][column].isShown){
+                if (!board[row][column].isShown && !board[row][column].isFlagged){
                     System.out.print("█ ");
                 }
                 else if (board[row][column].isMine){
                     System.out.print("X ");
                 }
-                else {
+                else if (board[row][column].isFlagged){
+                    System.out.print("F ");
+                }
+                else if (board[row][column].isFlagged || board[row][column].isShown || !board[row][column].isShown){
                     System.out.print(board[row][column].mineCount + " ");
                 }
             }
@@ -65,48 +68,91 @@ public class Game {
     }
 
     //function takes player input and board and returns 3 int long array
-    //the three ints represent command (quit(0), opening(1) or falgging(2) a mine, or invalid(3)), X, and Y
-    public static int[] playerInput(String input, Cell[][] board){
+    //the three ints represent command (quit (0), opening (1) or falgging (2) a mine, or invalid (3) ), X, and Y
+    public static int[] playerInput(String input){
         
         char[] inputArray = input.toCharArray();
-        int[] intInputArray = {0, 0, 0,};
-        int[] actionCordsArray = {0, 0, 0,};
+        int[] intInputArray = {0, 0, 0};
+        int[] parsedInput = {0, 0, 0};
 
         for (int i = 0; i < inputArray.length; i++){
             intInputArray[i] = (int)inputArray[i];
         }
 
         if ((inputArray[0] == 'q') || (inputArray[0] == 'Q')){
-            actionCordsArray[0] = 0;
+            parsedInput[0] = 0;
         }
         else if ((inputArray[0] == 'o') || (inputArray[0] == 'O')){
-            actionCordsArray[0] = 1;
+            parsedInput[0] = 1;
         }
         else if ((inputArray[0] == 'f') || (inputArray[0] == 'F')){
-            actionCordsArray[0] = 2;
+            parsedInput[0] = 2;
         }
         else{
-            actionCordsArray[0] = 3;
+            parsedInput[0] = 3;
         }
 
-        if ((actionCordsArray[1] = intInputArray[1] - 65) > 23){
-            actionCordsArray[1] = intInputArray[1] - 97;
+        if ((parsedInput[2] = intInputArray[1] - 65) > 25){
+            parsedInput[2] = intInputArray[1] - 97;
         }
-        else if ((actionCordsArray[2] = intInputArray[2] - 65) > 23){
-            actionCordsArray[2] = intInputArray[2] - 97;
+        else{
+            parsedInput[2] = intInputArray[1] - 65;
         }
 
-        return actionCordsArray;
+        if ((parsedInput[1] = intInputArray[2] - 65) > 25){
+            parsedInput[1] = intInputArray[2] - 97;
+        }
+        else{
+            parsedInput[1] = intInputArray[2] - 65;
+        }
 
+        return parsedInput;
     }
 
+    public static Cell[][] updateBoard(int[] parsedInput, Cell[][] board) {
+
+        Cell[][] boardUpdate = board;
+
+        int X = parsedInput[1];
+        int Y = parsedInput[2];
+
+        if (parsedInput[0] == 0) {
+            return boardUpdate;
+        }
+        else if (parsedInput[0] == 1) {
+
+            boardUpdate[X][Y].openCell();
+
+            if (boardUpdate[X][Y].mineCount == 0) {
+                for (int dx = -1; dx <= 1; dx++) {
+                    for (int dy = -1; dy <= 1; dy++) {
+                        if (!(dx == 0 && dy == 0)) {
+                            try {
+                                if (!boardUpdate[X + dx][Y + dy].isShown) {
+                                    boardUpdate = updateBoard(new int[]{1, X + dx, Y + dy}, boardUpdate);
+                                    //board[X + dx][Y + dy].incrementMineCount();
+
+                                }
+                            }catch (Exception e) {}
+                        }
+                    }
+                }
+            }
+        }
+        else if (parsedInput[0] == 2) {
+            boardUpdate[X][Y].flagCell();
+        }
+
+        return boardUpdate;
+    }
 
     //runs the game
     public static void main(String[] args) {
 
-        //creates and instance of the scanner and creates a 2D array called board
+        //creates and instance of the scanner and creates a 2D array of cells called board
         Scanner scan = new Scanner(System.in);
         Cell[][] board = createBoard(0);
+        boolean menu = true;
 
         //displays the menu
         System.out.print("Welcome to Minesweeper");
@@ -117,34 +163,36 @@ public class Game {
         System.out.println("3. Hard");
 
         //menu select
-        switch (scan.next()) {
-            case "1":
-                System.out.println("Easy" + "\n");
-                board = createBoard(9);
-                randomizeMines(board, 10);
-                renderBoard(board);
-                break;
-            case "2":
-                System.out.print("Medium" + "\n");
-                board = createBoard(16);
-                randomizeMines(board, 40);
-                renderBoard(board);
-                break;
-            case "3":
-                System.out.print("Hard" + "\n");
-                board = createBoard(24);
-                randomizeMines(board, 99);
-                renderBoard(board);
-                break;
-            case "sticky":
-                System.out.print("sticky" + "\n");
-                board = createBoard(24);
-                randomizeMines(board, 575);
-                renderBoard(board);
-                break;
-            default:
-                System.out.print("Invalid number, please select a difficulty:");
-                break;
+        while (menu){
+            switch (scan.next()) {
+                case "1":
+                    System.out.println("Easy" + "\n");
+                    board = createBoard(9);
+                    randomizeMines(board, 10);
+                    renderBoard(board);
+                    break;
+                case "2":
+                    System.out.print("Medium" + "\n");
+                    board = createBoard(16);
+                    randomizeMines(board, 40);
+                    renderBoard(board);
+                    break;
+                case "3":
+                    System.out.print("Hard" + "\n");
+                    board = createBoard(24);
+                    randomizeMines(board, 99);
+                    renderBoard(board);
+                    break;
+                case "sticky":
+                    System.out.print("sticky" + "\n");
+                    board = createBoard(24);
+                    randomizeMines(board, 575);
+                    renderBoard(board);
+                    break;
+                default:
+                    System.out.print("Invalid number, please select a difficulty:");
+                    break;
+            }
         }
 
         System.out.println();
@@ -152,18 +200,21 @@ public class Game {
         System.out.println("Your actions include:" + "\n" + "Opening a tile (o)" + "\n" + "Flagging a tile (f)" + "\n" + "Quiting (quit or q)");
 
         boolean run = true;
-        boolean invalid = false;
 
         while (run){
+
+            renderBoard(board);
+
             String input = scan.next();
-            int[] parsedInput = playerInput(input, board);
-            System.out.println(parsedInput[0]);
-            System.out.println(parsedInput[1]);
-            System.out.println( parsedInput[2]);
-//            if (invalid == true){
-//                System.out.println("Please enter the valid format of an action then your X and Y, letter indicated, coordinates");
-//                System.out.println("Your actions include:" + "\n" + "Opening a tile (o)" + "\n" + "Flagging a tile (f)" + "\n" + "Quiting (quit or q)");
+            int[] parsedInput = playerInput(input);
+            Cell[][] boardUpdate = updateBoard(parsedInput, board);
+
+//            if (boardUpdate == board){
+//                run = false;
+//                System.out.println(" Thank you for playing");
 //            }
+                board = boardUpdate;
+
         }
     }
 }
